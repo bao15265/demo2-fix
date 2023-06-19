@@ -1,4 +1,6 @@
-﻿using Demo2.Entities;
+﻿using Demo2.Dto.Store;
+using Demo2.Entities;
+using Demo2.Exceptions;
 using Demo2.Filters;
 using Demo2.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -17,42 +19,71 @@ namespace Demo2.Controllers
         }
 
         [HttpPost]
-        public ActionResult<Store> AddStore(Store store)
+        public IActionResult AddStore([FromBody] StoreDto storeDto)
         {
-            var addedStore = _storeService.AddStore(store);
-            return Ok(addedStore);
+            try
+            {
+                var store = _storeService.AddStore(storeDto);
+                return Ok(store);
+            }
+            catch (DuplicateEntityException ex)
+            {
+                return Conflict(ex.Message);
+            }
         }
 
-        [HttpPut("{storeId}")]
-        public ActionResult<Store> UpdateStore(int storeId, Store store)
+        [HttpPut("{id}")]
+        public IActionResult UpdateStore(int id, [FromBody] StoreDto storeDto)
         {
-            if (storeId != store.Id)
-                return BadRequest("Store ID mismatch.");
-
-            var updatedStore = _storeService.UpdateStore(store);
-            return Ok(updatedStore);
+            try
+            {
+                var store = _storeService.UpdateStore(id, storeDto);
+                return Ok(store);
+            }
+            catch (EntityNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (DuplicateEntityException ex)
+            {
+                return Conflict(ex.Message);
+            }
         }
 
-        [HttpDelete("{storeId}")]
-        public IActionResult DeleteStore(int storeId)
+        [HttpDelete("{id}")]
+        public IActionResult DeleteStore(int id)
         {
-            _storeService.DeleteStore(storeId);
-            return NoContent();
+            try
+            {
+                _storeService.DeleteStore(id);
+                return NoContent();
+            }
+            catch (EntityNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
         }
 
         [HttpGet]
-        public ActionResult<List<Store>> GetStores([FromQuery] PaginationFilter filter, [FromQuery] string keyword)
+        [Route("search")]
+        public IActionResult SearchStores([FromQuery] StoreFilterDto filter)
         {
-            var stores = _storeService.GetStores(filter, keyword);
+            var stores = _storeService.SearchStores(filter);
             return Ok(stores);
         }
 
-        [HttpGet("{storeId}/providers")]
-        public ActionResult<List<Provider>> GetProvidersWithHighestIntimacy(int storeId)
+        [HttpGet("{storeId}/top-providers")]
+        public IActionResult GetTopProviders(int storeId)
         {
-            var providers = _storeService.GetProvidersWithHighestIntimacy(storeId);
-            return Ok(providers);
+            try
+            {
+                var providers = _storeService.GetTopProviders(storeId);
+                return Ok(providers);
+            }
+            catch (EntityNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
         }
     }
-
 }

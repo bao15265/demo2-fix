@@ -1,15 +1,16 @@
-﻿using Demo2.Entities;
+﻿using Demo2.Dto.Provider;
+using Demo2.Dto.Store;
+using Demo2.Entities;
 using Demo2.Filters;
 
 namespace Demo2.Services.Interfaces
 {
     public interface IStoreService
     {
-        Store AddStore(Store store);
-        Store UpdateStore(Store store);
-        void DeleteStore(int storeId);
-        List<Store> GetStores(PaginationFilter filter, string keyword);
-        List<Provider> GetProvidersWithHighestIntimacy(int storeId);
+        StoreDto AddStore(StoreDto storeDto);
+        StoreDto UpdateStore(int id, StoreDto storeDto);
+        void DeleteStore(int id);
+        List<StoreDto> SearchStores(StoreFilterDto filter);
+        List<ProviderDto> GetTopProviders(int storeId);
     }
-
 }

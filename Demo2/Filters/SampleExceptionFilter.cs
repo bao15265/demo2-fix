@@ -8,7 +8,7 @@ namespace Demo2.Filters
     {
         public void OnException(ExceptionContext context)
         {
-            if (context.Exception is DuplicateEntryException)
+            if (context.Exception is DuplicateEntityException)
             {
                 context.Result = new ContentResult
                 {

@@ -1,5 +1,8 @@
 ﻿using Demo2.DbContexts;
+using Demo2.Dto.Provider;
+using Demo2.Dto.Store;
 using Demo2.Entities;
+using Demo2.Exceptions;
 using Demo2.Filters;
 using Demo2.Services.Interfaces;
 using Demo2.Validations;
@@ -16,57 +19,114 @@ namespace Demo2.Services.Implements
             _dbContext = dbContext;
         }
 
-        public Store AddStore(Store store)
+        public StoreDto AddStore(StoreDto storeDto)
         {
-            StoreValidation.ValidateStore(store, _dbContext);
+            if (_dbContext.Stores.Any(s => s.Name == storeDto.Name))
+            {
+                //throw new DuplicateEntityException("A store with the same name already exists.");
+            }
+
+            var store = new Store
+            {
+                Name = storeDto.Name,
+                Address = storeDto.Address,
+                OpenTime = storeDto.OpenTime,
+                CloseTime = storeDto.CloseTime
+            };
+
             _dbContext.Stores.Add(store);
             _dbContext.SaveChanges();
-            return store;
-        }
 
-        public Store UpdateStore(Store store)
-        {
-            StoreValidation.ValidateStore(store, _dbContext);
-            _dbContext.Stores.Update(store);
-            _dbContext.SaveChanges();
-            return store;
-        }
-
-        public void DeleteStore(int storeId)
-        {
-            var store = _dbContext.Stores.Find(storeId);
-            if (store != null)
+            return new StoreDto
             {
-                _dbContext.Stores.Remove(store);
-                _dbContext.SaveChanges();
-            }
+                Name = store.Name,
+                Address = store.Address,
+                OpenTime = store.OpenTime,
+                CloseTime = store.CloseTime
+            };
         }
 
-        public List<Store> GetStores(PaginationFilter filter, string keyword)
+        public StoreDto UpdateStore(int id, StoreDto storeDto)
+        {
+            var store = _dbContext.Stores.Find(id);
+            if (store == null)
+            {
+                throw new EntityNotFoundException("Store not found.");
+            }
+
+            if (_dbContext.Stores.Any(s => s.Name == storeDto.Name && s.Id != id))
+            {
+                throw new DuplicateEntityException("A store with the same name already exists.");
+            }
+
+            store.Name = storeDto.Name;
+            store.Address = storeDto.Address;
+            store.OpenTime = storeDto.OpenTime;
+            store.CloseTime = storeDto.CloseTime;
+
+            _dbContext.SaveChanges();
+
+            return new StoreDto
+            {
+                Name = store.Name,
+                Address = store.Address,
+                OpenTime = store.OpenTime,
+                CloseTime = store.CloseTime
+            };
+        }
+
+        public void DeleteStore(int id)
+        {
+            var store = _dbContext.Stores.Find(id);
+            if (store == null)
+            {
+                throw new EntityNotFoundException("Store not found.");
+            }
+
+            _dbContext.Stores.Remove(store);
+            _dbContext.SaveChanges();
+        }
+
+        public List<StoreDto> SearchStores(StoreFilterDto filter)
         {
             var query = _dbContext.Stores.AsQueryable();
-            if (!string.IsNullOrEmpty(keyword))
-                query = query.Where(s => s.Name.Contains(keyword) || s.Address.Contains(keyword));
+
+            if (!string.IsNullOrEmpty(filter.Keyword))
+            {
+                query = query.Where(s => s.Name.Contains(filter.Keyword) || s.Address.Contains(filter.Keyword));
+            }
 
             var stores = query
-                .Skip((filter.PageIndex - 1) * filter.PageSize)
+                .OrderBy(s => s.Name)
+                .Skip(filter.PageSize * (filter.PageIndex - 1))
                 .Take(filter.PageSize)
+                .Select(s => new StoreDto
+                {
+                    Name = s.Name,
+                    Address = s.Address,
+                    OpenTime = s.OpenTime,
+                    CloseTime = s.CloseTime
+                })
                 .ToList();
 
             return stores;
         }
 
-        public List<Provider> GetProvidersWithHighestIntimacy(int storeId)
+        public List<ProviderDto> GetTopProviders(int storeId)
         {
+            var store = _dbContext.Stores.Find(storeId);
+            if (store == null)
+            {
+                throw new EntityNotFoundException("Store not found.");
+            }
+
             var providers = _dbContext.StoreProviders
                 .Where(sp => sp.StoreId == storeId)
-                .GroupBy(sp => new { sp.ProviderId })
-                .OrderByDescending(g => g.Max(sp => sp.IntimacyLevel))
-                .Select(g => _providerService.GetProviderById(g.Key.ProviderId))
+                .OrderByDescending(sp => sp.IntimacyLevel)
+                .Select(sp => _providerService.GetProviderById(sp.StoreId))
                 .ToList();
 
             return providers;
         }
     }
-
 }

@@ -1,4 +1,5 @@
-﻿using Demo2.Entities;
+﻿using Demo2.Dto.Provider;
+using Demo2.Exceptions;
 using Demo2.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -16,28 +17,49 @@ namespace Demo2.Controllers
         }
 
         [HttpPost]
-        public ActionResult<Provider> AddProvider(Provider provider)
+        public IActionResult AddProvider([FromBody] ProviderDto providerDto)
         {
-            var addedProvider = _providerService.AddProvider(provider);
-            return Ok(addedProvider);
+            try
+            {
+                var provider = _providerService.AddProvider(providerDto);
+                return Ok(provider);
+            }
+            catch (DuplicateEntityException ex)
+            {
+                return Conflict(ex.Message);
+            }
         }
 
-        [HttpPut("{providerId}")]
-        public ActionResult<Provider> UpdateProvider(int providerId, Provider provider)
+        [HttpPut("{id}")]
+        public IActionResult UpdateProvider(int id, [FromBody] ProviderDto providerDto)
         {
-            if (providerId != provider.Id)
-                return BadRequest("Provider ID mismatch.");
-
-            var updatedProvider = _providerService.UpdateProvider(provider);
-            return Ok(updatedProvider);
+            try
+            {
+                var provider = _providerService.UpdateProvider(id, providerDto);
+                return Ok(provider);
+            }
+            catch (EntityNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (DuplicateEntityException ex)
+            {
+                return Conflict(ex.Message);
+            }
         }
 
-        [HttpDelete("{providerId}")]
-        public IActionResult DeleteProvider(int providerId)
+        [HttpDelete("{id}")]
+        public IActionResult DeleteProvider(int id)
         {
-            _providerService.DeleteProvider(providerId);
-            return NoContent();
+            try
+            {
+                _providerService.DeleteProvider(id);
+                return NoContent();
+            }
+            catch (EntityNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
         }
     }
-
 }
