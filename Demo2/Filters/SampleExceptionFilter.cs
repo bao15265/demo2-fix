@@ -8,7 +8,7 @@ namespace Demo2.Filters
     {
         public void OnException(ExceptionContext context)
         {
-            if (context.Exception is DuplicateEntityException)
+            if (context.Exception is DuplicateEntityException || context.Exception is EntityNotFoundException)
             {
                 context.Result = new ContentResult
                 {
