@@ -68,8 +68,8 @@ namespace Demo2.Controllers
         [Route("search")]
         public IActionResult SearchStores([FromQuery] StoreFilterDto filter)
         {
-            var stores = _storeService.SearchStores(filter);
-            return Ok(stores);
+            _storeService.SearchStores(filter);
+            return Ok();
         }
 
         [HttpGet("{storeId}/top-providers")]
@@ -77,8 +77,8 @@ namespace Demo2.Controllers
         {
             try
             {
-                var providers = _storeService.GetTopProviders(storeId);
-                return Ok(providers);
+                _storeService.GetTopProviders(storeId);
+                return Ok();
             }
             catch (EntityNotFoundException ex)
             {
