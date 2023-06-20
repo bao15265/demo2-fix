@@ -21,8 +21,8 @@ namespace Demo2.Controllers
         {
             try
             {
-                var provider = _providerService.AddProvider(providerDto);
-                return Ok(provider);
+                _providerService.AddProvider(providerDto);
+                return Ok();
             }
             catch (DuplicateEntityException ex)
             {
@@ -35,8 +35,8 @@ namespace Demo2.Controllers
         {
             try
             {
-                var provider = _providerService.UpdateProvider(id, providerDto);
-                return Ok(provider);
+                _providerService.UpdateProvider(id, providerDto);
+                return Ok();
             }
             catch (EntityNotFoundException ex)
             {

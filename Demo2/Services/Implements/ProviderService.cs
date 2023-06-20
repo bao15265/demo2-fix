@@ -15,7 +15,7 @@ namespace Demo2.Services.Implements
             _dbContext = dbContext;
         }
 
-        public ProviderDto AddProvider(ProviderDto providerDto)
+        public void AddProvider(ProviderDto providerDto)
         {
             if (_dbContext.Providers.Any(p => p.Name == providerDto.Name))
             {
@@ -30,22 +30,11 @@ namespace Demo2.Services.Implements
 
             _dbContext.Providers.Add(provider);
             _dbContext.SaveChanges();
-
-            return new ProviderDto
-            {
-                Name = provider.Name,
-                PhoneNumber = provider.PhoneNumber
-            };
         }
 
-        public ProviderDto UpdateProvider(int id, ProviderDto providerDto)
+        public void UpdateProvider(int id, ProviderDto providerDto)
         {
-            var provider = _dbContext.Providers.Find(id);
-            if (provider == null)
-            {
-                throw new EntityNotFoundException("Provider not found.");
-            }
-
+            var provider = _dbContext.Providers.Find(id) ?? throw new EntityNotFoundException("Provider not found.");
             if (_dbContext.Providers.Any(p => p.Name == providerDto.Name && p.Id != id))
             {
                 throw new DuplicateEntityException("A provider with the same name already exists.");
@@ -55,12 +44,6 @@ namespace Demo2.Services.Implements
             provider.PhoneNumber = providerDto.PhoneNumber;
 
             _dbContext.SaveChanges();
-
-            return new ProviderDto
-            {
-                Name = provider.Name,
-                PhoneNumber = provider.PhoneNumber
-            };
         }
 
         public void DeleteProvider(int id)
@@ -77,12 +60,7 @@ namespace Demo2.Services.Implements
 
         public ProviderDto GetProviderById(int id)
         {
-            var provider = _dbContext.Providers.Find(id);
-            if (provider == null)
-            {
-                throw new EntityNotFoundException("Provider not found.");
-            }
-
+            var provider = _dbContext.Providers.Find(id) ?? throw new EntityNotFoundException("Provider not found.");
             return new ProviderDto
             {
                 Name = provider.Name,

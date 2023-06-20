@@ -23,8 +23,8 @@ namespace Demo2.Controllers
         {
             try
             {
-                var store = _storeService.AddStore(storeDto);
-                return Ok(store);
+                _storeService.AddStore(storeDto);
+                return Ok();
             }
             catch (DuplicateEntityException ex)
             {
@@ -37,8 +37,8 @@ namespace Demo2.Controllers
         {
             try
             {
-                var store = _storeService.UpdateStore(id, storeDto);
-                return Ok(store);
+                _storeService.UpdateStore(id, storeDto);
+                return Ok();
             }
             catch (EntityNotFoundException ex)
             {

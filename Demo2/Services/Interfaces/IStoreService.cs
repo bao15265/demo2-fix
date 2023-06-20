@@ -7,8 +7,8 @@ namespace Demo2.Services.Interfaces
 {
     public interface IStoreService
     {
-        StoreDto AddStore(StoreDto storeDto);
-        StoreDto UpdateStore(int id, StoreDto storeDto);
+        void AddStore(StoreDto storeDto);
+        void UpdateStore(int id, StoreDto storeDto);
         void DeleteStore(int id);
         List<StoreDto> SearchStores(StoreFilterDto filter);
         List<ProviderDto> GetTopProviders(int storeId);

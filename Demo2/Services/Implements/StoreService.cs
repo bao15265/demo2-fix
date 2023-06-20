@@ -19,11 +19,11 @@ namespace Demo2.Services.Implements
             _dbContext = dbContext;
         }
 
-        public StoreDto AddStore(StoreDto storeDto)
+        public void AddStore(StoreDto storeDto)
         {
             if (_dbContext.Stores.Any(s => s.Name == storeDto.Name))
             {
-                //throw new DuplicateEntityException("A store with the same name already exists.");
+                throw new DuplicateEntityException("A store with the same name already exists.");
             }
 
             var store = new Store
@@ -36,24 +36,11 @@ namespace Demo2.Services.Implements
 
             _dbContext.Stores.Add(store);
             _dbContext.SaveChanges();
-
-            return new StoreDto
-            {
-                Name = store.Name,
-                Address = store.Address,
-                OpenTime = store.OpenTime,
-                CloseTime = store.CloseTime
-            };
         }
 
-        public StoreDto UpdateStore(int id, StoreDto storeDto)
+        public void UpdateStore(int id, StoreDto storeDto)
         {
-            var store = _dbContext.Stores.Find(id);
-            if (store == null)
-            {
-                throw new EntityNotFoundException("Store not found.");
-            }
-
+            var store = _dbContext.Stores.Find(id) ?? throw new EntityNotFoundException("Store not found.");
             if (_dbContext.Stores.Any(s => s.Name == storeDto.Name && s.Id != id))
             {
                 throw new DuplicateEntityException("A store with the same name already exists.");
@@ -65,24 +52,11 @@ namespace Demo2.Services.Implements
             store.CloseTime = storeDto.CloseTime;
 
             _dbContext.SaveChanges();
-
-            return new StoreDto
-            {
-                Name = store.Name,
-                Address = store.Address,
-                OpenTime = store.OpenTime,
-                CloseTime = store.CloseTime
-            };
         }
 
         public void DeleteStore(int id)
         {
-            var store = _dbContext.Stores.Find(id);
-            if (store == null)
-            {
-                throw new EntityNotFoundException("Store not found.");
-            }
-
+            var store = _dbContext.Stores.Find(id) ?? throw new EntityNotFoundException("Store not found.");
             _dbContext.Stores.Remove(store);
             _dbContext.SaveChanges();
         }
@@ -114,12 +88,7 @@ namespace Demo2.Services.Implements
 
         public List<ProviderDto> GetTopProviders(int storeId)
         {
-            var store = _dbContext.Stores.Find(storeId);
-            if (store == null)
-            {
-                throw new EntityNotFoundException("Store not found.");
-            }
-
+            var store = _dbContext.Stores.Find(storeId) ?? throw new EntityNotFoundException("Store not found.");
             var providers = _dbContext.StoreProviders
                 .Where(sp => sp.StoreId == storeId)
                 .OrderByDescending(sp => sp.IntimacyLevel)
